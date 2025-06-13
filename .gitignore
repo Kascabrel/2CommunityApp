@@ -1,0 +1,38 @@
+# system file
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Dependances and builds
+node_modules/
+dist/
+build/
+vendor/
+
+#  Python virtuel Environnement
+.venv/
+venv/
+
+#   configuration  files
+.env
+config/*.json
+config/*.yml
+
+# Cached and gemerated
+*.cache
+*.bak
+*.pid
+
+#  IDE-specific fles
+.idea/
+.vscode/
+*.iml
+
+# SSH-key and certificats
+*.pem
+*.crt
+*.key
