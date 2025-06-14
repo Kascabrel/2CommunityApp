@@ -93,3 +93,12 @@ class AuthController(BaseController):
 
     def convert_dict_to_model(self, data: dict):
         return self.model_class(**data)
+
+    def get_by_email(self, email: str):
+        return self.db_session.query(self.model_class).filter_by(email=email).first()
+
+    def get_by_id(self, user_id: int):
+        user = self.db_session.query(self.model_class).filter_by(id=user_id).first()
+        if not user:
+            return None
+        return user
