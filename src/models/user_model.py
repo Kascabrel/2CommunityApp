@@ -1,7 +1,5 @@
 import enum
-
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from src.models import db
 
 
@@ -10,7 +8,7 @@ class UserRole(enum.Enum):
     USER = 'user'
 
 
-class User(db.model):
+class User(db.Model):  # << Corrigé ici
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -19,15 +17,13 @@ class User(db.model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     salt = db.Column(db.String(200), nullable=False)
-    role = db.Column(db.Enum(UserRole), nullable=False)
+    role = db.Column(db.Enum(UserRole), nullable=False, default=UserRole.USER)
 
-    def set_password(self, password):
-        """Set the user's password."""
-        self.password_hash = generate_password_hash(password)
+    def set_password(self, password, salt):
+        self.password_hash = generate_password_hash(password + salt)
 
     def check_password(self, password):
-        """Check the user's password."""
-        return check_password_hash(password, self.password_hash)
+        return check_password_hash(self.password_hash, password + self.salt)
 
     def __repr__(self):
-        return f'<User {self.username}>'
+        return f'<User {self.email}>'
