@@ -9,24 +9,19 @@ class AuthController(BaseController):
         super().__init__(db_session, model_class)
         self.model_class = model_class
 
-    def create(self, data: dict):  # returns and response and  status code
-        # check if the email is already registered
+    def create(self, data: dict):
         existing_user = self.db_session.query(self.model_class).filter_by(email=data['email']).first()
         if existing_user:
             return {"error": "Email already registered"}, 409
 
-        # generate a salt and hash the password
         salt = secrets.token_hex(16)
-        # set the role to user by default
         role = UserRole.USER
 
-        if 'role' in data:
+        if 'role' in data and data['role'] == 'admin':
             admin_identifier = data.get('admin_identifier')
-            # Check if the admin identifier exists in the database
             identifier_code = self.db_session.query(AdminIdentifierCode).filter_by(code=admin_identifier).first()
             if not identifier_code:
                 return {"error": "Invalid admin identifier"}, 400
-
             role = UserRole.ADMIN
 
         user = self.model_class(
@@ -34,8 +29,7 @@ class AuthController(BaseController):
             lastname=data['last_name'],
             email=data['email'],
             salt=salt,
-            role=role,
-
+            role=role
         )
         user.set_password(data['password'], salt)
 
@@ -51,14 +45,60 @@ class AuthController(BaseController):
             return {"error": str(e)}, 500
 
     def get_by_id(self, item_id: int):
-        pass
+        user = self.db_session.query(self.model_class).get(item_id)
+        if user:
+            return {
+                "id": user.id,
+                "firstname": user.firstname,
+                "lastname": user.lastname,
+                "email": user.email,
+                "role": user.role.value,
+                "admin_identifier": user.admin_identifier
+            }, 200
+        return {"error": "User not found"}, 404
 
     def update(self, item_id: int, data: dict):
-        pass
+        user = self.db_session.query(self.model_class).get(item_id)
+        if not user:
+            return {"error": "User not found"}, 404
+
+        try:
+            for key in ['first_name', 'last_name', 'email']:
+                if key in data:
+                    setattr(user, key.replace('first_name', 'firstname').replace('last_name', 'lastname'), data[key])
+
+            if 'password' in data:
+                salt = secrets.token_hex(16)
+                user.set_password(data['password'], salt)
+                user.salt = salt
+
+            self.db_session.commit()
+            return {"message": "User updated successfully"}, 200
+        except Exception as e:
+            self.db_session.rollback()
+            return {"error": str(e)}, 500
 
     def delete(self, item_id: int):
-        pass
+        user = self.db_session.query(self.model_class).get(item_id)
+        if not user:
+            return {"error": "User not found"}, 404
+
+        try:
+            self.db_session.delete(user)
+            self.db_session.commit()
+            return {"message": "User deleted successfully"}, 200
+        except Exception as e:
+            self.db_session.rollback()
+            return {"error": str(e)}, 500
 
     def convert_dict_to_model(self, data: dict):
-        """Convert a dictionary to a model instance."""
         return self.model_class(**data)
+
+    def get_by_email(self, email: str):
+        return self.db_session.query(self.model_class).filter_by(email=email).first()
+
+    def get_by_id(self, user_id: int):
+        user = self.db_session.query(self.model_class).filter_by(id=user_id).first()
+        if not user:
+            return None
+        return user
