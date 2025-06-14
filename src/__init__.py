@@ -11,8 +11,10 @@ def create_app(testing=False):
 
     if testing:
         app.config.from_object('config.TestingConfig')
+    elif app.config['ENV'] == 'development':
+        app.config.from_object('config.DevelopmentConfig')
     else:
-        app.config.from_object('config.Config')
+        app.config.from_object('config.ProductionConfig')
 
     with app.app_context():
         # register blueprints
