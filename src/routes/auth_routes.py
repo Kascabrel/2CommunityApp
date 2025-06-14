@@ -23,11 +23,7 @@ def register():
     email = data.get('email')
     password = data.get('password')
     print("request data:", data)
-    # check if any role are in the Data and the role should be from type UserRole
-    if 'role' in data:
-        role = data.get('role')
-        if role not in ['admin', 'user']:
-            return jsonify({"error": "Invalid role"}), 400
+
     # verify required fields
     missing_fields = [field for field in ['first_name', 'last_name', 'email', 'password'] if not data.get(field)]
     if missing_fields:
