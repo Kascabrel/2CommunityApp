@@ -2,11 +2,13 @@ from flask import Flask
 
 from src.models import db
 from src.routes.auth_routes import auth
+#from src.routes.contribution_routes import contribution_bp
 
 
 def register_blueprints(app):
     """Register all blueprints for the application."""
     app.register_blueprint(auth, url_prefix='/auth')
+    #app.register_blueprint(contribution_bp, url_prefix='/contribution')
 
 
 def create_app(testing=False, development=False):
