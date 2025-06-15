@@ -101,3 +101,10 @@ def update_user(user_id):
 def delete_user(user_id):
     response, status = controller.delete(user_id)
     return jsonify(response), status
+
+
+@auth.route('/get_id/<string:email>', methods=['GET'])
+#@require_admin
+def get_id(email):
+    response, status = controller.provide_user_id(email)
+    return jsonify(response), status

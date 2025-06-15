@@ -102,3 +102,12 @@ class AuthController(BaseController):
         if not user:
             return None
         return user
+
+    def provide_user_id(self, email):
+        """ this method  will be use just for testing to provide the user_id to use in oother workflow"""
+        user = self.db_session.query(self.model_class).filter_by(email=email).first()
+
+        if user is None:
+            return {"message": "user not found"}, 404  # ✅ Gérer l'erreur proprement
+
+        return {"message": "user found", "user_id": user.id}, 200
