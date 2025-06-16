@@ -1,9 +1,9 @@
 import jwt
 from functools import wraps
 from flask import request, jsonify, current_app
-from src.controllers.auth_controller import AuthController
-from src.models import db
-from src.models.user_model import User, UserRole
+from community.controllers.auth_controller import AuthController
+from community.models import db
+from community.models.user_model import User, UserRole
 
 
 def require_admin(f):

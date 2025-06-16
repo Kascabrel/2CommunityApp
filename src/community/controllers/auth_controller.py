@@ -1,7 +1,7 @@
 import secrets
 from sqlalchemy.exc import IntegrityError
-from src.controllers import BaseController
-from src.models.user_model import UserRole, AdminIdentifierCode
+from community.controllers import BaseController
+from community.models.user_model import UserRole, AdminIdentifierCode
 
 
 class AuthController(BaseController):
@@ -19,8 +19,12 @@ class AuthController(BaseController):
 
         if 'role' in data and data['role'] == 'admin':
             admin_identifier = data.get('admin_identifier')
+            if not admin_identifier:
+                return {"error": "Invalid admin identifier"}, 409
             identifier_code = self.db_session.query(AdminIdentifierCode).filter_by(code=admin_identifier).first()
             if not identifier_code:
+                return {"error": "Invalid admin identifier"}, 400
+            if identifier_code.code != admin_identifier:
                 return {"error": "Invalid admin identifier"}, 400
             role = UserRole.ADMIN
 

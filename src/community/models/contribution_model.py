@@ -1,6 +1,5 @@
 from enum import Enum
-from datetime import date
-from src import db
+from community.models import db
 
 
 class ContributionStatus(Enum):

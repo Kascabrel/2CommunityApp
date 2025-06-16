@@ -5,10 +5,10 @@ import datetime
 from flask import current_app
 import jwt
 
-from src.controllers.auth_controller import AuthController
-from src.models import db
-from src.models.user_model import User
-from src.routes import require_admin
+from community.controllers.auth_controller import AuthController
+from community.models import db
+from community.models.user_model import User
+from community.routes import require_admin
 
 EMAIL_REGEX = r"^[\w\.-]+@[\w\.-]+\.\w{2,}$"
 controller = AuthController(db.session, User)

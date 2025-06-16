@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from src.models.contribution_model import (
+from community.models.contribution_model import (
     ContributionRun,
     UserContributionRun,
     Contribution,
@@ -7,7 +7,7 @@ from src.models.contribution_model import (
     UserMonthlyContribution,
     PaymentStatus
 )
-from src.models.user_model import User
+from community.models.user_model import User
 from sqlalchemy.orm import Session
 from typing import List, Optional
 

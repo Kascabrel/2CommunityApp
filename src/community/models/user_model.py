@@ -1,9 +1,6 @@
 import enum
 from werkzeug.security import generate_password_hash, check_password_hash
-from src.models import db
-
-from src.models.contribution_model import UserContributionRun, UserMonthlyContribution, Contribution
-
+from community.models import db
 
 class UserRole(enum.Enum):
     ADMIN = 'admin'

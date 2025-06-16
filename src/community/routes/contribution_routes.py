@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
-from src.controllers.contribution_controller import ContributionController
-from src.models import db  # Tu dois avoir une session SQLAlchemy ici
+from community.controllers.contribution_controller import ContributionController
+from community.models import db  # Tu dois avoir une session SQLAlchemy ici
 
 contribution_bp = Blueprint('contribution', __name__, url_prefix='/contribution')
 controller = ContributionController(db.session)

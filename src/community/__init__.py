@@ -1,8 +1,8 @@
 from flask import Flask
 
-from src.models import db
-from src.routes.auth_routes import auth
-from src.routes.contribution_routes import contribution_bp
+from community.models import db
+from community.routes.auth_routes import auth
+from community.routes.contribution_routes import contribution_bp
 
 
 def register_blueprints(app):
@@ -14,12 +14,14 @@ def register_blueprints(app):
 def create_app(testing=False, development=False):
     app = Flask(__name__)
 
+    package_name = 'community.config'
+
     if testing:
-        app.config.from_object('config.TestingConfig')
+        app.config.from_object(f'{package_name}.TestingConfig')
     elif development:
-        app.config.from_object('config.DevelopmentConfig')
+        app.config.from_object(f'{package_name}.DevelopmentConfig')
     else:
-        app.config.from_object('config.ProductionConfig')
+        app.config.from_object(f'{package_name}.ProductionConfig')
 
     db.init_app(app)
     register_blueprints(app)
@@ -33,8 +35,7 @@ def create_app(testing=False, development=False):
 
 
 def create_initial_admin():
-    from src.models.user_model import User, AdminIdentifierCode, db, UserRole
-    from werkzeug.security import generate_password_hash
+    from community.models.user_model import User, AdminIdentifierCode, db, UserRole
     import secrets
     import os
 

@@ -1,6 +1,6 @@
 import pytest
 
-from src import create_app, db
+from community import create_app, db
 
 
 @pytest.fixture

@@ -1,8 +1,8 @@
 import pytest
 from datetime import datetime
 
-from src import create_app, db
-from src.models.user_model import UserRole
+from community import create_app, db
+from community.models.user_model import UserRole
 
 
 @pytest.fixture
