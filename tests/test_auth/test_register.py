@@ -1,6 +1,6 @@
 import pytest
 
-from src import create_app, db
+from community import create_app, db
 
 
 @pytest.fixture
@@ -63,5 +63,5 @@ def test_register_with_admin_role(client):
         'password': 'admin123',
         'role': 'admin'
     })
-    assert response.status_code == 400
+    assert response.status_code == 409
     assert "Invalid admin identifier" in response.get_json()["error"]

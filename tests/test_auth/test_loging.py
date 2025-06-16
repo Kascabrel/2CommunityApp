@@ -1,16 +1,15 @@
 import pytest
-import json
 
 
 @pytest.fixture
 def client():
-    from src import create_app
+    from community import create_app
     app = create_app(testing=True)
     with app.test_client() as client:
         with app.app_context():
             # Ici, tu peux créer les tables et insérer un utilisateur de test
-            from src.models import db
-            from src.models.user_model import User, UserRole
+            from community.models import db
+            from community.models.user_model import User, UserRole
             db.create_all()
 
             # Création d'un utilisateur test

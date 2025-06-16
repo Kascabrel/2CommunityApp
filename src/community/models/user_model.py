@@ -1,7 +1,6 @@
 import enum
 from werkzeug.security import generate_password_hash, check_password_hash
-from src.models import db
-
+from community.models import db
 
 class UserRole(enum.Enum):
     ADMIN = 'admin'
@@ -19,6 +18,12 @@ class User(db.Model):  # << Corrigé ici
     salt = db.Column(db.String(200), nullable=False)
     role = db.Column(db.Enum(UserRole), nullable=False, default=UserRole.USER)
     admin_identifier = db.Column(db.String(200), nullable=True)
+    # Relations
+    user_contribution_runs = db.relationship('UserContributionRun', back_populates='user')
+    monthly_contributions = db.relationship('UserMonthlyContribution', back_populates='user')
+
+    #  to retrieve all monthly contributions where the user is the winner
+    won_contributions = db.relationship('Contribution', back_populates='winner_user')
 
     def set_password(self, password, salt):
         self.password_hash = generate_password_hash(password + salt)
