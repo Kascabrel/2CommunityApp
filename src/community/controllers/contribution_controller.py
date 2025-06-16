@@ -1,4 +1,7 @@
 from datetime import datetime, timedelta
+
+from flask import jsonify
+
 from community.models.contribution_model import (
     ContributionRun,
     UserContributionRun,
@@ -57,11 +60,10 @@ class ContributionController:
     def generate_monthly_contributions(self, session_id: int) -> None:
         session = self.db_session.get(ContributionRun, session_id)
         if not session:
-            raise ValueError("Session non trouvée")
+            raise ValueError("Session not found")
 
         total_parts = sum(uc.number_of_parts for uc in session.user_contributions)
         months_duration = total_parts
-
         for month_index in range(months_duration):
             contribution_month = session.start_date + timedelta(days=30 * month_index)
 
@@ -86,6 +88,7 @@ class ContributionController:
                 self.db_session.add(user_monthly_contrib)
 
         self.db_session.commit()
+
 
     def record_payment(
             self,
@@ -139,3 +142,10 @@ class ContributionController:
         return self.db_session.query(UserMonthlyContribution).filter_by(
             user_id=user_id
         ).all()
+
+    def get_all_user_monthly_contribution(self):
+        """ this method will only be use for testcase with pytest"""
+        user_list = self.db_session.query(UserMonthlyContribution).all()
+        if not user_list:
+            return None
+        return [user.user_id for user in user_list]

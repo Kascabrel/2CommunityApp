@@ -17,7 +17,8 @@ def create_contribution_session():
     minimal_contribution = data.get('minimal_contribution')
     start_date = data.get('start_date')
 
-    missing_fields = [field for field in ['number_of_members', 'minimal_contribution', 'start_date'] if not data.get(field)]
+    missing_fields = [field for field in ['number_of_members', 'minimal_contribution', 'start_date'] if
+                      not data.get(field)]
     if missing_fields:
         return jsonify({"error": f"Missing required fields: {', '.join(missing_fields)}"}), 400
 
@@ -40,7 +41,7 @@ def add_user_to_contribution_session(session_id):
 
     try:
         uc = controller.add_user_to_session(session_id, user_id, number_of_parts)
-        return jsonify({"message": "Utilisateur ajouté", "user_contribution_id": uc.id, "user_id": uc.user_id }), 201
+        return jsonify({"message": "Utilisateur ajouté", "user_contribution_id": uc.id, "user_id": uc.user_id}), 201
     except ValueError as ve:
         return jsonify({"error": str(ve)}), 404
     except Exception as e:
@@ -51,8 +52,10 @@ def add_user_to_contribution_session(session_id):
 def generate_monthly_contributions(session_id):
     try:
         controller.generate_monthly_contributions(session_id)
-        return jsonify({"message": "Cotisations mensuelles générées"}), 200
+        #  print("the monthly contribution generated successfully")
+        return jsonify({"message": "monthly contribution generate"}), 200
     except ValueError as ve:
+        print("the monthly contribution could not be generated")
         return jsonify({"error": str(ve)}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -78,7 +81,7 @@ def record_payment(user_monthly_contrib_id):
         return jsonify({"error": str(e)}), 500
 
 
-@contribution_bp.route('/contribution/<int:contribution_id>/winner', methods=['POST'])
+@contribution_bp.route('/<int:contribution_id>/winner', methods=['POST'])
 def set_contribution_winner(contribution_id):
     data = request.get_json()
     winner_user_id = data.get('winner_user_id')
@@ -89,9 +92,10 @@ def set_contribution_winner(contribution_id):
     try:
         contribution = controller.set_month_winner(contribution_id, winner_user_id)
         return jsonify({
-            "message": "Gagnant défini",
+            "message": "winner defined",
             "contribution_id": contribution.id,
-            "status": contribution.status.name
+            "status": contribution.status.name,
+            "winner_user_id": contribution.winner_user_id
         }), 200
     except ValueError as ve:
         return jsonify({"error": str(ve)}), 404
@@ -109,7 +113,7 @@ def list_all_sessions():
             "start_date": s.start_date.isoformat(),
             "number_of_members": s.number_of_members
         } for s in sessions
-    ])
+    ]), 200
 
 
 @contribution_bp.route('/session/<int:session_id>/contributions', methods=['GET'])
@@ -123,7 +127,7 @@ def get_session_contributions(session_id):
             "status": c.status.name,
             "user_id": c.user_contribution.user_id
         } for c in contributions
-    ])
+    ]), 200
 
 
 @contribution_bp.route('/user/<int:user_id>/payments', methods=['GET'])
@@ -137,4 +141,18 @@ def get_user_payments(user_id):
             "payment_date": p.payment_date.isoformat() if p.payment_date else None,
             "contribution_id": p.contribution_id
         } for p in payments
-    ])
+    ]), 200
+
+
+@contribution_bp.route('/all_user_contributions', methods=['GET'])
+def get_all_user_contributions():
+    """This endpoint will allways be used in the pytest testcase"""
+    user_contribution_id_list = controller.get_all_user_monthly_contribution()
+    print(f"user_contribution_id_list: {user_contribution_id_list}")
+    return jsonify([
+        {
+            "response": "successful",
+            "number": len(user_contribution_id_list),
+            "list_of_user_id": user_contribution_id_list
+        }
+    ]), 200

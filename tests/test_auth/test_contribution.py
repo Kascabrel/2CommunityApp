@@ -46,8 +46,8 @@ def test_add_user_to_session(client):
 
     # Créer un utilisateur (via endpoint auth/register par ex. ou directement en base ici)
     # Pour simplifier, ajout direct en DB ici
-    from src.models.user_model import User
-    from src import db as _db
+    from community.models.user_model import User
+    from community import db as _db
 
     # register a new user
     client.post('auth/register', json={
@@ -74,33 +74,40 @@ def test_add_user_to_session(client):
 
 def test_generate_monthly_contributions(client):
     # Setup session + user
-    resp1 = client.post('/contribution/contribution', json={
-        'number_of_member': 1,
+    resp1 = client.post('/contribution/session', json={
+        'number_of_members': 1,
         'minimal_contribution': 100,
         'start_date': datetime.utcnow().date().isoformat()
     })
-    session_id = resp1.get_json()['id']
+    session_id = resp1.get_json()['session_id']
 
-    from src.models.user_model import User
-    from src import db as _db
-
-    user = User(email="user2@example.com", name="User Two")
-    with client.application.app_context():
-        _db.session.add(user)
-        _db.session.commit()
-        user_id = user.id
+    from community.models.user_model import User
+    from community import db as _db
+    # -
+    # register a new user
+    client.post('auth/register', json={
+        'first_name': 'steve',
+        'last_name': 'Doe',
+        'email': 'jean@steve.com',
+        'password': 'password123'
+    })
+    # Add a new user to the database
+    user_email = "jean@steve.com"
+    response = client.get(f'auth/get_id/{user_email}')
+    assert response.status_code == 200
+    user_id = response.get_json()['user_id']
 
     # Add user to session
-    client.post('/contribution/add_user', json={
+    client.post(f'/contribution/session/{session_id}/add_user', json={
         'session_id': session_id,
         'user_id': user_id,
         'number_of_parts': 2
     })
-
+    # print(f"the session id is: {session_id}")
     # Generate monthly contributions
-    resp2 = client.post('/contribution/generate_monthly_contributions', json={'session_id': session_id})
+    resp2 = client.post(f'/contribution/session/{session_id}/generate-months')
     assert resp2.status_code == 200
-    assert 'message' in resp2.get_json()
+    assert "monthly contribution generate" in resp2.get_json()["message"]
 
 
 def test_record_payment(client):
@@ -131,17 +138,19 @@ def test_record_payment(client):
         'number_of_parts': 1
     })
 
-    client.post(f'/contribution/session/{session_id}/generate_months')
+    resp = client.post(f'/contribution/session/{session_id}/generate-months')
+    assert resp.status_code == 200
+    assert "monthly contribution generate" in resp.get_json()["message"]
 
     # Récupérer un UserMonthlyContribution
-    from src.models.contribution_model import UserMonthlyContribution
-    with client.application.app_context():
-        umc = UserMonthlyContribution.query.filter_by(user_id=user_id).first()
-        print(f"the received object is: {umc}")
-        umc_id = umc.id
+    resp2 = client.get(f'/contribution/all_user_contributions')
+    assert resp2.status_code == 200
+    user_contribution_id_list = resp2.get_json()
+    received_id = user_contribution_id_list[0].get('list_of_user_id')[0]
+    assert received_id == 1
 
-    # Enregistrer paiement
-    resp2 = client.post('/contribution/record_payment', json={'user_monthly_contrib_id': umc_id})
+    # register a payment
+    resp2 = client.post(f'/contribution/payment/{1}', json={})
     assert resp2.status_code == 200
     data = resp2.get_json()
     assert data['status'] == 'PAID'
@@ -150,36 +159,39 @@ def test_record_payment(client):
 def test_set_month_winner(client):
     # Setup contribution and user like before
 
-    resp1 = client.post('/contribution/contribution', json={
-        'number_of_member': 1,
+    resp1 = client.post('/contribution/session', json={
+        'number_of_members': 1,
         'minimal_contribution': 100,
         'start_date': datetime.utcnow().date().isoformat()
     })
-    session_id = resp1.get_json()['id']
+    resp1_json= resp1.get_json()
+    session_id = resp1_json['session_id']
 
-    from src.models.user_model import User
-    from src import db as _db
+    client.post('auth/register', json={
+        'first_name': 'steve',
+        'last_name': 'Doe',
+        'email': 'jean@steve.com',
+        'password': 'password123'
+    })
+    user_email = "jean@steve.com"
+    response = client.get(f'auth/get_id/{user_email}')
+    assert response.status_code == 200
+    user_id = response.get_json()['user_id']
 
-    user = User(email="user4@example.com", name="User Four")
-    with client.application.app_context():
-        _db.session.add(user)
-        _db.session.commit()
-        user_id = user.id
-
-    client.post('/contribution/add_user', json={
+    client.post(f'/contribution/session/{session_id}/add-user', json={
         'session_id': session_id,
         'user_id': user_id,
         'number_of_parts': 1
     })
 
-    client.post('/contribution/generate_monthly_contributions', json={'session_id': session_id})
+    client.post(f'/contribution/session/{session_id}/generate-months')
 
-    from src.models.contribution_model import Contribution
+    from community.models.contribution_model import Contribution
     with client.application.app_context():
         contrib = Contribution.query.filter_by(contribution_run_id=session_id).first()
         contrib_id = contrib.id
 
-    resp2 = client.post('/contribution/set_winner', json={
+    resp2 = client.post(f'/contribution/{contrib_id}/winner', json={
         'contribution_id': contrib_id,
         'winner_user_id': user_id
     })
